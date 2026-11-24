@@ -7,5 +7,14 @@ export const SITE = 'https://neko-tech.pages.dev';
 export default defineConfig({
   site: SITE,
   integrations: [sitemap()],
-  build: { format: 'directory' },
+  build: { format: 'directory', assets: 'assets' },
+  vite: {
+    build: {
+      rollupOptions: {
+        // 既定では [...slug] 由来で "_slug_.css" になり、先頭の _ が
+        // 一部ホスティングで予約名として弾かれるため明示的に命名する
+        output: { assetFileNames: 'assets/site.[hash][extname]' },
+      },
+    },
+  },
 });
