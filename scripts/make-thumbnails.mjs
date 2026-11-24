@@ -13,7 +13,7 @@
  *   CLOUDFLARE_ACCOUNT_ID
  *   CLOUDFLARE_AI_TOKEN   … 権限「Workers AI : Read」
  *                           未設定なら CLOUDFLARE_API_TOKEN を使う
- *   CF_AI_MODEL           … 任意。既定は SDXL
+ *   CF_AI_MODEL           … 任意。最優先で試すモデルID
  *
  * 使い方:
  *   node scripts/make-thumbnails.mjs          # 未生成の記事だけ
@@ -30,7 +30,17 @@ const ACCOUNT = (process.env.CLOUDFLARE_ACCOUNT_ID || '').trim();
 // 専用トークンがあればそれを、無ければPages用トークンを使う
 // （1つのトークンに Workers AI 権限を追加して運用する場合に対応）
 const TOKEN = (process.env.CLOUDFLARE_AI_TOKEN || process.env.CLOUDFLARE_API_TOKEN || '').trim();
-const MODEL = process.env.CF_AI_MODEL || '@cf/stabilityai/stable-diffusion-xl-base-1.0';
+/**
+ * 試行するモデルの順序。Cloudflareはモデルを定期的に廃止し、
+ * 廃止後は HTTP 410 を返す（2026-11-20 に SDXL 系が一斉廃止された）。
+ * 1つ死んでも次を試すことで、運用を止めずに済むようにしておく。
+ * CF_AI_MODEL を指定した場合はそれを最優先で試す。
+ */
+const MODELS = [
+  process.env.CF_AI_MODEL,
+  '@cf/black-forest-labs/flux-2-klein-9b', // SDXL の公式な移行先
+  '@cf/black-forest-labs/flux-1-schnell',
+].filter(Boolean);
 const FORCE = process.argv.includes('--force');
 const DRY = process.argv.includes('--dry');
 
@@ -164,27 +174,63 @@ function buildSVG({ lines, label }) {
 </svg>`;
 }
 
-async function generateBackground(category) {
-  const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/ai/run/${MODEL}`;
+async function callModel(model, payload) {
+  const url = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/ai/run/${model}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: buildPrompt(category),
-      negative_prompt: 'text, letters, words, watermark, logo, cartoon, illustration, deformed, extra limbs',
-      width: W, height: H, num_steps: 20,
-    }),
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(90000),
   });
-  if (!res.ok) throw new Error(`Workers AI HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
-
+  if (!res.ok) {
+    const body = (await res.text()).slice(0, 180);
+    const err = new Error(`HTTP ${res.status}: ${body}`);
+    err.status = res.status;
+    throw err;
+  }
+  // モデルにより JSON(base64) とバイナリの両方がある
   const type = res.headers.get('content-type') || '';
   if (type.includes('application/json')) {
     const j = await res.json();
-    const b64 = j.result?.image;
-    if (!b64) throw new Error('画像が返りませんでした: ' + JSON.stringify(j).slice(0, 200));
+    const b64 = j.result?.image ?? j.result?.images?.[0];
+    if (!b64) throw new Error('画像が返りませんでした: ' + JSON.stringify(j).slice(0, 180));
     return Buffer.from(b64, 'base64');
   }
   return Buffer.from(await res.arrayBuffer());
+}
+
+/** 成功したモデルを覚えて、2枚目以降は最初から試さない */
+let workingModel = null;
+
+async function generateBackground(category) {
+  const prompt = buildPrompt(category);
+  const negative = 'text, letters, words, watermark, logo, cartoon, illustration, deformed, extra limbs';
+  const candidates = workingModel ? [workingModel] : MODELS;
+  const problems = [];
+
+  for (const model of candidates) {
+    // パラメータ名はモデルごとに違うため、順に試す
+    const payloads = [
+      { prompt, negative_prompt: negative, width: W, height: H, steps: 6 },
+      { prompt, negative_prompt: negative, width: W, height: H, num_steps: 20 },
+      { prompt, steps: 6 },
+      { prompt },
+    ];
+    for (const payload of payloads) {
+      try {
+        const buf = await callModel(model, payload);
+        if (workingModel !== model) console.log(`  使用モデル: ${model}`);
+        workingModel = model;
+        return buf;
+      } catch (e) {
+        if (e.status === 410) { problems.push(`${model}: 廃止済み`); break; }   // 次のモデルへ
+        if (e.status === 400) continue;                                        // 次のパラメータ形へ
+        problems.push(`${model}: ${e.message}`);
+        break;
+      }
+    }
+  }
+  throw new Error(problems.join(' / ') || '全モデルで失敗');
 }
 
 /** 背景が無い場合の代替。合成部分の確認とAPI未設定時に使う */
@@ -203,7 +249,8 @@ const fontFiles = ['assets/fonts/NotoSansJP-Black.ttf', 'assets/fonts/NotoSansJP
 await mkdir(OUT_DIR, { recursive: true });
 
 const files = (await readdir(ART_DIR)).filter((f) => /\.mdx?$/.test(f));
-let made = 0, skipped = 0;
+let made = 0, skipped = 0, aiOk = 0, aiFail = 0;
+const hasCreds = Boolean(ACCOUNT && TOKEN);
 
 for (const file of files) {
   const slug = file.replace(/\.mdx?$/, '');
@@ -219,14 +266,16 @@ for (const file of files) {
   const label = { 'litter-box': '自動トイレ', monitoring: '見守り・給餌', supplies: '消耗品', life: '猫の暮らし' }[category] || '';
 
   let bg;
-  if (DRY || !ACCOUNT || !TOKEN) {
+  if (DRY || !hasCreds) {
     bg = await placeholderBackground();
   } else {
     try {
       bg = await generateBackground(category);
+      aiOk++;
     } catch (e) {
       console.warn(`  [${slug}] 背景生成に失敗: ${e.message} → 代替背景を使用`);
       bg = await placeholderBackground();
+      aiFail++;
     }
   }
 
@@ -254,6 +303,19 @@ for (const file of files) {
 }
 
 console.log(`\nサムネイル: 生成 ${made} 件 / 既存 ${skipped} 件`);
-if (!ACCOUNT || !TOKEN) {
+if (!hasCreds) {
   console.log('CLOUDFLARE_ACCOUNT_ID / トークンが未設定のため代替背景で生成しました');
+} else {
+  console.log(`AI背景: 成功 ${aiOk} 件 / 失敗 ${aiFail} 件`);
+}
+
+// 認証情報があるのに1枚もAI生成できなかった場合は失敗として扱う。
+// 代替背景のまま「成功」と表示されると、問題に気づけない。
+if (hasCreds && aiOk === 0 && aiFail > 0) {
+  console.error(
+    '\nAI背景の生成が全件失敗しました。代替背景で出力しています。\n' +
+    'モデルの廃止かトークン権限（Workers AI）を確認してください。\n' +
+    '現行モデル一覧: https://developers.cloudflare.com/workers-ai/models/'
+  );
+  process.exit(1);
 }
