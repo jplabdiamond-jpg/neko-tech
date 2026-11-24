@@ -59,5 +59,33 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
       <slot />
     </main>
     <Footer />
+
+    <script is:inline>
+      /* 外部CDNの商品画像は予告なくURLが変わる。消えたまま放置されると
+         比較記事の説得力が落ちるので、崩さずプレースホルダーに差し替える。
+         data-broken が付いた画像は check-images.mjs の調査対象になる。 */
+      (() => {
+        const PH =
+          '<svg viewBox="0 0 32 32" aria-hidden="true" class="imgph__mark">' +
+          '<path d="M3 16 Q16 5.5 29 16 Q16 26.5 3 16 Z" fill="currentColor"/>' +
+          '<ellipse cx="16" cy="16" rx="5.4" ry="7.6" fill="#b65c12"/>' +
+          '<path d="M16 9 Q17.9 16 16 23 Q14.1 16 16 9 Z" fill="#f2eee8"/></svg>';
+        const swap = (img) => {
+          if (img.dataset.broken) return;
+          img.dataset.broken = '1';
+          const ph = document.createElement('span');
+          ph.className = 'imgph';
+          ph.setAttribute('role', 'img');
+          ph.setAttribute('aria-label', img.alt || '画像を読み込めませんでした');
+          ph.innerHTML = PH;
+          img.replaceWith(ph);
+        };
+        const bind = (img) => {
+          if (img.complete && img.naturalWidth === 0) swap(img);
+          else img.addEventListener('error', () => swap(img), { once: true });
+        };
+        document.querySelectorAll('img[src^="http"]').forEach(bind);
+      })();
+    </script>
   </body>
 </html>

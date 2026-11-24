@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "fetch:products": "node scripts/fetch-rakuten.mjs"
+    "fetch:products": "node scripts/fetch-rakuten.mjs",
+    "check:images": "node scripts/check-images.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

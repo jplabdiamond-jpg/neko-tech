@@ -28,8 +28,9 @@ const articles = defineCollection({
        */
       hero: image().optional(),
       /**
-       * 自前の画像が無い場合のみ。楽天商品検索APIが返す画像URLを入れる。
-       * Amazonの画像URLをここに入れてはいけない（運営規約違反）。
+       * 外部CDNの商品画像URL（Amazon / 楽天）。自前写真が無い記事で使う。
+       * URLは運営者が用意する。画像が切れた場合はプレースホルダーに自動で差し替わり、
+       * scripts/check-images.mjs で死活監視できる。
        */
       heroRemote: z.string().url().optional(),
       heroAlt: z.string().optional(),

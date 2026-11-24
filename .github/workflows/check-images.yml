@@ -1,0 +1,28 @@
+name: Check product images
+
+# 外部CDNの商品画像は予告なくURLが変わる。週次で検査し、
+# 切れていたらワークフローを失敗させてGitHubから通知を飛ばす。
+on:
+  schedule:
+    - cron: '0 21 * * 1'  # 毎週月曜 UTC 21:00 = JST 火曜 06:00
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Fetch product data (Rakuten)
+        env:
+          RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+          RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
+          RAKUTEN_REFERER: https://neko-tech.pages.dev/
+        run: node scripts/fetch-rakuten.mjs
+      - run: npm run build
+      - run: node scripts/check-images.mjs --strict

@@ -134,6 +134,15 @@ h3 { font-size: 1.15rem; }
   font-size: .8rem; color: var(--ink-faint); line-height: 1.6;
 }
 
+/* 外部画像が読み込めなかったときの代替表示 */
+.imgph {
+  display: grid; place-items: center;
+  width: 100%; aspect-ratio: 4 / 3;
+  background: var(--paper-sunk); border-radius: var(--radius-lg);
+  color: var(--rule);
+}
+.imgph__mark { width: 28%; max-width: 72px; }
+
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; overflow: hidden;
   clip: rect(0 0 0 0); white-space: nowrap;
