@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { site } from '../lib/site';
+import { getCollection } from 'astro:content';
+
+const all = (await getCollection('articles', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf()
+);
+---
+<BaseLayout>
+  <section class="hero">
+    <div class="wrap hero__inner">
+      <div class="hero__copy">
+        <p class="hero__kicker">猫用デバイス専門レビュー</p>
+        <h1>猫の道具を、<br />実測で選ぶ。</h1>
+        <p class="hero__lead">
+          自動猫トイレは本体だけで5万円前後、消耗品は毎月かかり続けます。
+          スペック表を並べるだけのランキングでは、買ったあとの正解は分かりません。
+          このサイトは<strong>実機を長期間使い、騒音・猫砂の消費量・電気代を実測して</strong>比較します。
+        </p>
+        <div class="hero__btns">
+          <a class="btn" href="/tools/cost-simulator/">年間コストを計算する</a>
+          <a class="btn btn--ghost" href="/category/litter-box/">自動トイレを比較する</a>
+        </div>
+      </div>
+      <ul class="hero__facts">
+        <li><span class="hero__factnum">3年</span>総額で比較</li>
+        <li><span class="hero__factnum">dB</span>騒音を実測</li>
+        <li><span class="hero__factnum">1ヶ月</span>猫砂の消費量</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="wrap section">
+    <h2 class="section__title">カテゴリ</h2>
+    <ul class="cats">
+      {site.nav.map((c) => (
+        <li>
+          <a href={c.href} class="cats__item">
+            <strong>{c.label}</strong>
+            <span>{
+              c.href.includes('litter-box') ? '本体価格と3年総額で選ぶ'
+              : c.href.includes('monitoring') ? '留守番と健康記録のための道具'
+              : c.href.includes('supplies') ? '猫砂・シーツを単価で比較'
+              : '掃除・留守番・季節の対策'
+            }</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="wrap--narrow section">
+    <h2 class="section__title">新着記事</h2>
+    {all.length === 0 ? (
+      <p class="empty">記事を準備中です。</p>
+    ) : (
+      <div>
+        {all.map((a) => (
+          <ArticleCard
+            href={`/articles/${a.id}/`}
+            title={a.data.title}
+            description={a.data.description}
+            category={a.data.category}
+            verified={a.data.verified}
+            date={a.data.publishDate}
+          />
+        ))}
+      </div>
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .hero { padding: 3.5rem 0 3rem; border-bottom: 1px solid var(--rule); }
+  .hero__inner { display: grid; grid-template-columns: 1fr auto; gap: 2.5rem; align-items: end; }
+  .hero__kicker { margin: 0 0 .8rem; font-size: .8rem; font-weight: 700; letter-spacing: .14em; color: var(--amber); }
+  .hero h1 { font-size: clamp(2rem, 1.3rem + 3vw, 3.2rem); line-height: 1.22; letter-spacing: -.035em; }
+  .hero__lead { max-width: 36rem; margin: 1.3rem 0 0; color: var(--ink-soft); }
+  .hero__btns { display: flex; gap: .8rem; margin-top: 1.6rem; flex-wrap: wrap; }
+
+  /* 実測を売りにする媒体なので、数値そのものを装飾要素として使う */
+  .hero__facts { list-style: none; margin: 0; padding: 0; display: grid; gap: .8rem; border-left: 2px solid var(--ink); padding-left: 1.2rem; }
+  .hero__facts li { font-size: .82rem; color: var(--ink-faint); line-height: 1.4; }
+  .hero__factnum { display: block; font-family: var(--num); font-size: 1.3rem; font-weight: 700; color: var(--ink); letter-spacing: -.02em; }
+
+  .section { padding: 3rem 0 0; }
+  .section__title { font-size: .85rem; letter-spacing: .14em; color: var(--ink-faint); font-weight: 700; margin-bottom: 1.2rem; }
+
+  .cats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; }
+  .cats__item { display: block; padding: 1.1rem 1.2rem; background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius-lg); text-decoration: none; transition: border-color .15s ease, transform .15s ease; }
+  .cats__item:hover { border-color: var(--amber); transform: translateY(-2px); }
+  .cats__item strong { display: block; margin-bottom: .25rem; }
+  .cats__item span { font-size: .84rem; color: var(--ink-faint); }
+
+  .empty { color: var(--ink-faint); font-size: .95rem; }
+
+  @media (max-width: 820px) {
+    .hero__inner { grid-template-columns: 1fr; align-items: start; }
+    .hero__facts { display: flex; gap: 1.5rem; border-left: 0; border-top: 2px solid var(--ink); padding: 1rem 0 0; }
+  }
+</style>

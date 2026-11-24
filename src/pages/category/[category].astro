@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { categoryLabels } from '../../lib/site';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  return Object.keys(categoryLabels).map((category) => ({ params: { category } }));
+}
+
+const { category } = Astro.params;
+const label = categoryLabels[category!] ?? category;
+const articles = (
+  await getCollection('articles', ({ data }) => !data.draft && data.category === category)
+).sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
+---
+<BaseLayout title={label} description={`${label}に関する実測レビューと比較記事の一覧。`}>
+  <div class="wrap--narrow cat">
+    <nav class="crumbs" aria-label="パンくず"><a href="/">ホーム</a><span aria-hidden="true">/</span><span>{label}</span></nav>
+    <h1>{label}</h1>
+    <p class="cat__count"><span class="badge__num">{articles.length}</span> 件の記事</p>
+    {articles.length === 0
+      ? <p class="empty">このカテゴリの記事は準備中です。</p>
+      : articles.map((a) => (
+          <ArticleCard
+            href={`/articles/${a.id}/`}
+            title={a.data.title}
+            description={a.data.description}
+            category={a.data.category}
+            verified={a.data.verified}
+            date={a.data.publishDate}
+          />
+        ))}
+  </div>
+</BaseLayout>
+
+<style>
+  .cat { padding: 2.5rem 0 0; }
+  .crumbs { display: flex; gap: .5rem; font-size: .8rem; color: var(--ink-faint); margin-bottom: 1.5rem; }
+  .crumbs a { color: var(--ink-faint); text-decoration: none; }
+  .cat__count { margin: .6rem 0 1.5rem; color: var(--ink-faint); font-size: .85rem; }
+  .empty { color: var(--ink-faint); }
+</style>

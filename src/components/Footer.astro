@@ -1,0 +1,32 @@
+---
+import { site } from '../lib/site';
+const year = new Date().getFullYear();
+---
+<footer class="site-foot">
+  <div class="wrap">
+    <p class="disclosure">
+      当サイトはAmazonアソシエイト・プログラムおよび楽天アフィリエイトの参加者として、
+      適格販売により収入を得ています。掲載する評価は実機の使用と実測に基づくもので、
+      紹介料の有無によって順位を変更することはありません。価格・仕様は変動するため、
+      最終的な内容は各販売ページでご確認ください。
+    </p>
+    <div class="site-foot__meta">
+      <nav aria-label="フッター">
+        <ul>
+          {site.nav.map((i) => <li><a href={i.href}>{i.label}</a></li>)}
+          <li><a href="/tools/cost-simulator/">年間コスト計算機</a></li>
+        </ul>
+      </nav>
+      <p class="copy">© {year} {site.name}</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-foot { margin-top: 5rem; padding: 2.5rem 0 3rem; border-top: 1px solid var(--rule); background: var(--paper-sunk); }
+  .site-foot__meta { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 1.4rem; }
+  .site-foot ul { display: flex; gap: 1.1rem; margin: 0; padding: 0; list-style: none; flex-wrap: wrap; }
+  .site-foot a { font-size: .88rem; color: var(--ink-soft); text-decoration: none; }
+  .site-foot a:hover { text-decoration: underline; text-decoration-color: var(--amber); }
+  .copy { margin: 0; font-size: .8rem; color: var(--ink-faint); font-family: var(--num); }
+</style>

@@ -1,0 +1,25 @@
+---
+interface Props {
+  product: string;
+  price?: string;
+  reason: string;
+  amazon?: string;
+  rakuten?: string;
+}
+const { product, price, reason, amazon, rakuten } = Astro.props as Props;
+---
+<div class="cta">
+  <p class="cta__head">{product}{price && <span class="cta__price">{price}</span>}</p>
+  <p class="cta__reason">{reason}</p>
+  <div class="cta__btns">
+    {amazon && <a class="btn" href={amazon} rel="nofollow sponsored noopener" target="_blank">Amazonで価格を見る</a>}
+    {rakuten && <a class="btn btn--ghost" href={rakuten} rel="nofollow sponsored noopener" target="_blank">楽天市場で見る</a>}
+  </div>
+  <p class="cta__note">価格は変動します。最新の価格・在庫は販売ページでご確認ください。</p>
+</div>
+
+<style>
+  .cta__price { margin-left: .7em; font-family: var(--num); font-weight: 700; color: var(--amber); }
+  .cta__reason { margin: 0; font-size: .95rem; color: var(--ink-soft); }
+  .cta__btns { display: flex; gap: .7rem; flex-wrap: wrap; }
+</style>

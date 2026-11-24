@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CostCalculator from '../../components/CostCalculator.astro';
+---
+<BaseLayout
+  title="自動猫トイレ 年間コスト計算機"
+  description="自動猫トイレの本体価格・専用砂・シーツ・電気代から3年総額を計算し、手動トイレとの損益分岐点を出します。頭数と使用年数を入れるだけ。"
+>
+  <div class="wrap--narrow tool">
+    <nav class="crumbs" aria-label="パンくず"><a href="/">ホーム</a><span aria-hidden="true">/</span><span>年間コスト計算機</span></nav>
+    <h1>自動猫トイレ 年間コスト計算機</h1>
+    <p class="tool__lead">
+      自動猫トイレで最も多い後悔は「本体価格だけ見て買ってしまった」ことです。
+      専用砂とシーツは毎月かかり、頭数が増えれば比例して増えます。
+      ここで<strong>3年総額</strong>と<strong>手動トイレとの差</strong>を先に把握してください。
+    </p>
+    <CostCalculator />
+    <h2>計算式について</h2>
+    <ul>
+      <li>自動トイレ総額 = 本体価格 +（専用砂 + シーツ）× 頭数 × 月数 + 電気代 × 月数</li>
+      <li>手動トイレ総額 = 本体価格 + 猫砂 × 頭数 × 月数</li>
+      <li>損益分岐月数 = 本体価格差 ÷ 月額の差（自動のほうが月額が安い場合のみ算出）</li>
+    </ul>
+    <p class="tool__note">
+      消耗品は頭数に比例、電気代と本体は頭数に依存しないものとして計算しています。
+      故障・買い替えや専用砂以外の代用品を使う場合は結果が変わります。
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .tool { padding: 2.5rem 0 0; }
+  .crumbs { display: flex; gap: .5rem; font-size: .8rem; color: var(--ink-faint); margin-bottom: 1.5rem; }
+  .crumbs a { color: var(--ink-faint); text-decoration: none; }
+  .tool__lead { margin: 1.2rem 0 0; color: var(--ink-soft); }
+  .tool h2 { margin-top: 2.5rem; padding-top: .8rem; border-top: 2px solid var(--ink); }
+  .tool ul { color: var(--ink-soft); font-size: .93rem; }
+  .tool__note { font-size: .83rem; color: var(--ink-faint); }
+</style>

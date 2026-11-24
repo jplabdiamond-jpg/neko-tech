@@ -1,0 +1,53 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { categoryLabels } from '../lib/site';
+
+interface Props {
+  title: string;
+  description: string;
+  category: string;
+  verified?: string;
+  publishDate: Date;
+  updatedDate?: Date;
+}
+const { title, description, category, verified, publishDate, updatedDate } =
+  Astro.props as Props;
+const fmt = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '.');
+---
+<BaseLayout title={title} description={description} ogType="article">
+  <article class="wrap--narrow article">
+    <nav class="crumbs" aria-label="パンくず">
+      <a href="/">ホーム</a>
+      <span aria-hidden="true">/</span>
+      <a href={`/category/${category}/`}>{categoryLabels[category] ?? category}</a>
+    </nav>
+
+    <header class="article__head">
+      <h1>{title}</h1>
+      <div class="article__meta">
+        {verified && <span class="badge">{verified}</span>}
+        <time datetime={publishDate.toISOString()}>公開 {fmt(publishDate)}</time>
+        {updatedDate && <time datetime={updatedDate.toISOString()}>更新 {fmt(updatedDate)}</time>}
+      </div>
+      <p class="article__lead">{description}</p>
+      <p class="disclosure">
+        本記事にはアフィリエイトリンクを含みます。評価は実機の使用と実測に基づき、
+        紹介料の有無で順位を変えることはありません。
+      </p>
+    </header>
+
+    <div class="prose">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .article { padding: 2.5rem 0 0; }
+  .crumbs { display: flex; gap: .5rem; font-size: .8rem; color: var(--ink-faint); margin-bottom: 1.5rem; }
+  .crumbs a { color: var(--ink-faint); text-decoration: none; }
+  .crumbs a:hover { color: var(--amber); }
+  .article__head { padding-bottom: 1.8rem; border-bottom: 1px solid var(--rule); }
+  .article__meta { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; margin: .9rem 0; font-family: var(--num); font-size: .78rem; color: var(--ink-faint); }
+  .article__lead { font-size: 1.02rem; color: var(--ink-soft); margin: 1rem 0 1.3rem; }
+</style>

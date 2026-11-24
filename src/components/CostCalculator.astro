@@ -1,0 +1,181 @@
+---
+/**
+ * 年間コスト計算機 — このサイト最大の差別化要素。
+ * 大手検証メディアは「本体の性能比較」で止まるため、購入前の最大の不安である
+ * ランニングコストに数字で答える機能を自前で持つ。CTAの直前に置く。
+ * 依存ゼロ（vanilla JS）。
+ */
+interface Props { compact?: boolean }
+const { compact = false } = Astro.props as Props;
+---
+<section class="calc card" data-compact={compact ? 'true' : null} aria-labelledby="calc-title">
+  <div class="calc__head">
+    <span class="badge">実測ベース</span>
+    <h2 id="calc-title">自動猫トイレ 年間コスト計算機</h2>
+    <p class="calc__lead">
+      本体価格だけでは判断できません。専用砂・シーツ・電気代を含めた<strong>3年総額</strong>と、
+      手動トイレとの差額から<strong>「掃除の手間を1日いくらで買っているか」</strong>を計算します。
+    </p>
+  </div>
+
+  <form class="calc__form" id="calc-form" novalidate>
+    <div class="calc__grid">
+      <p class="calc__legend">飼育状況</p>
+      <label>猫の頭数<span class="u">匹</span>
+        <input type="number" id="cats" value="1" min="1" max="10" step="1" inputmode="numeric" />
+      </label>
+      <label>使用予定年数<span class="u">年</span>
+        <input type="number" id="years" value="3" min="1" max="10" step="1" inputmode="numeric" />
+      </label>
+
+      <p class="calc__legend">自動トイレ</p>
+      <label>本体価格<span class="u">円</span>
+        <input type="number" id="device" value="49800" min="0" step="100" inputmode="numeric" />
+      </label>
+      <label>専用猫砂 月額<span class="u">円</span>
+        <input type="number" id="autoLitter" value="2500" min="0" step="100" inputmode="numeric" />
+      </label>
+      <label>専用シーツ等 月額（不要なら0）<span class="u">円</span>
+        <input type="number" id="autoSheet" value="0" min="0" step="100" inputmode="numeric" />
+      </label>
+      <label>電気代 月額<span class="u">円</span>
+        <input type="number" id="power" value="60" min="0" step="10" inputmode="numeric" />
+      </label>
+
+      <p class="calc__legend">手動トイレ（比較対象）</p>
+      <label>本体価格<span class="u">円</span>
+        <input type="number" id="manualDevice" value="3000" min="0" step="100" inputmode="numeric" />
+      </label>
+      <label>猫砂 月額<span class="u">円</span>
+        <input type="number" id="manualLitter" value="1800" min="0" step="100" inputmode="numeric" />
+      </label>
+    </div>
+
+    <output class="calc__out" id="calc-out" aria-live="polite"></output>
+  </form>
+
+  <p class="calc__note">
+    ※ 消耗品は頭数に比例して増える前提で計算します（電気代・本体は頭数に依存しません）。
+    初期値は一般的な価格帯の例です。実際の金額に置き換えてご利用ください。
+  </p>
+</section>
+
+<style>
+  .calc { padding: 1.75rem; margin: 2.5rem 0; }
+  .calc__head h2 { margin: .6rem 0 .5rem; }
+  .calc__lead { margin: 0; color: var(--ink-soft); font-size: .95rem; }
+
+  .calc__grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: .9rem 1.1rem; margin: 1.5rem 0 0;
+  }
+  .calc__legend {
+    grid-column: 1 / -1; margin: .6rem 0 -.2rem;
+    font-size: .8rem; font-weight: 700; letter-spacing: .06em;
+    color: var(--ink-faint); text-transform: uppercase;
+    border-bottom: 1px solid var(--rule); padding-bottom: .35rem;
+  }
+  .calc label { display: flex; flex-direction: column; gap: .3rem; font-size: .88rem; color: var(--ink-soft); position: relative; }
+  .calc .u { position: absolute; right: .7rem; bottom: .62rem; font-size: .78rem; color: var(--ink-faint); pointer-events: none; }
+  .calc input {
+    font: inherit; font-family: var(--num); font-size: 1rem; font-variant-numeric: tabular-nums;
+    padding: .55rem 2.2rem .55rem .7rem;
+    border: 1px solid var(--rule); border-radius: var(--radius);
+    background: var(--paper); color: var(--ink); width: 100%;
+  }
+  .calc input:focus-visible { outline: 2px solid var(--data); outline-offset: 1px; border-color: var(--data); }
+
+  .calc__out { display: block; margin-top: 1.6rem; }
+  .calc__note { margin: 1.1rem 0 0; font-size: .78rem; color: var(--ink-faint); line-height: 1.65; }
+
+  /* 結果表示 */
+  .res { border-top: 2px solid var(--ink); padding-top: 1.2rem; }
+  .res__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .res__box { padding: .9rem 1rem; border-radius: var(--radius); background: var(--paper-sunk); }
+  .res__box--auto { background: var(--amber-soft); }
+  .res__box h3 { font-size: .82rem; color: var(--ink-soft); font-weight: 700; margin-bottom: .3rem; }
+  .res__big { font-family: var(--num); font-size: clamp(1.2rem, 1rem + 1.4vw, 1.7rem); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .res__sub { font-size: .78rem; color: var(--ink-faint); }
+  .res__verdict { margin-top: 1.1rem; padding: .9rem 1rem; border-radius: var(--radius); background: var(--data-soft); color: var(--data); font-size: .95rem; font-weight: 700; line-height: 1.6; }
+  .res__break { margin-top: .9rem; }
+  @media (max-width: 520px) { .res__cols { grid-template-columns: 1fr; } }
+</style>
+
+<script is:inline>
+  (() => {
+    const form = document.getElementById('calc-form');
+    const out = document.getElementById('calc-out');
+    if (!form || !out) return;
+
+    const yen = (n) => '¥' + Math.round(n).toLocaleString('ja-JP');
+    const num = (id, fallback = 0) => {
+      const el = document.getElementById(id);
+      const v = el ? Number(el.value) : NaN;
+      return Number.isFinite(v) && v >= 0 ? v : fallback;
+    };
+
+    function render() {
+      const cats = Math.max(1, num('cats', 1));
+      const years = Math.max(1, num('years', 3));
+      const months = years * 12;
+
+      const autoMonthly = (num('autoLitter') + num('autoSheet')) * cats + num('power');
+      const manualMonthly = num('manualLitter') * cats;
+
+      const autoTotal = num('device') + autoMonthly * months;
+      const manualTotal = num('manualDevice') + manualMonthly * months;
+      const diff = autoTotal - manualTotal;
+
+      // 損益分岐: 本体差額を月額差で回収できる月数（自動の方が月額が安い場合のみ成立）
+      const deviceGap = num('device') - num('manualDevice');
+      const monthlyGap = manualMonthly - autoMonthly;
+      let breakEven = null;
+      if (monthlyGap > 0 && deviceGap > 0) breakEven = Math.ceil(deviceGap / monthlyGap);
+
+      let verdict;
+      if (diff > 0) {
+        verdict = `${years}年間で自動トイレのほうが <span class="res__big">${yen(diff)}</span> 高くなります。
+          この差額は1日あたり約${yen(diff / (months * 30.4))}。掃除の手間と健康記録に
+          この金額を払う価値があるかが判断軸です。`;
+      } else if (diff < 0) {
+        verdict = `${years}年間で自動トイレのほうが <span class="res__big">${yen(-diff)}</span> 安くなります。
+          手間が減るうえに総額でも有利なので、導入を見送る金銭的な理由はありません。`;
+      } else {
+        verdict = `${years}年間の総額はほぼ同額です。手間をどう評価するかで決まります。`;
+      }
+
+      out.innerHTML = `
+        <div class="res">
+          <div class="res__cols">
+            <div class="res__box res__box--auto">
+              <h3>自動トイレ ${years}年総額</h3>
+              <p class="res__big">${yen(autoTotal)}</p>
+              <p class="res__sub">月あたり ${yen(autoTotal / months)}（消耗品 ${yen(autoMonthly)}/月）</p>
+            </div>
+            <div class="res__box">
+              <h3>手動トイレ ${years}年総額</h3>
+              <p class="res__big">${yen(manualTotal)}</p>
+              <p class="res__sub">月あたり ${yen(manualTotal / months)}（消耗品 ${yen(manualMonthly)}/月）</p>
+            </div>
+          </div>
+          <p class="res__verdict">${verdict}</p>
+          ${breakEven !== null ? `
+            <div class="res__break datarow">
+              <span class="datarow__label">本体差額を回収できるまで</span>
+              <span class="datarow__value">${breakEven}ヶ月（約${(breakEven / 12).toFixed(1)}年）</span>
+            </div>` : ''}
+          <div class="datarow">
+            <span class="datarow__label">差額（1日あたり）</span>
+            <span class="datarow__value">${diff > 0 ? yen(diff / (months * 30.4)) : '手動より安い'}</span>
+          </div>
+          <div class="datarow">
+            <span class="datarow__label">${years}年間の消耗品だけの合計（自動）</span>
+            <span class="datarow__value">${yen(autoMonthly * months)}</span>
+          </div>
+        </div>`;
+    }
+
+    form.addEventListener('input', render);
+    render();
+  })();
+</script>
