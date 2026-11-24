@@ -1,0 +1,65 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+/**
+ * 比較記事・イチオシ記事で使う製品カード。画像・実測値・CTAを1つにまとめる。
+ * rel="nofollow sponsored" を内包しているので、リンクの付け忘れを防げる。
+ */
+interface Props {
+  name: string;
+  image?: ImageMetadata | string;
+  imageAlt?: string;
+  imageCredit?: string;
+  price?: string;
+  rank?: string;
+  verdict?: string;
+  /** 実測値。[ラベル, 値] の配列 */
+  specs?: [string, string][];
+  amazon?: string;
+  rakuten?: string;
+}
+const { name, image, imageAlt, imageCredit, price, rank, verdict, specs = [], amazon, rakuten } =
+  Astro.props as Props;
+const isLocal = image && typeof image !== 'string';
+---
+<div class="pcard card">
+  {image && (
+    <div class="pcard__media">
+      {isLocal
+        ? <Image src={image as ImageMetadata} alt={imageAlt ?? name} width={560} densities={[1, 2]} loading="lazy" decoding="async" />
+        : <img src={image as string} alt={imageAlt ?? name} loading="lazy" decoding="async" />}
+      {imageCredit && <span class="pcard__credit">{imageCredit}</span>}
+    </div>
+  )}
+  <div class="pcard__body">
+    {rank && <span class="badge badge--amber">{rank}</span>}
+    <h3 class="pcard__name">{name}</h3>
+    {price && <p class="pcard__price">{price}</p>}
+    {verdict && <p class="pcard__verdict">{verdict}</p>}
+    {specs.length > 0 && (
+      <dl class="pcard__specs">
+        {specs.map(([k, v]) => (<><dt>{k}</dt><dd>{v}</dd></>))}
+      </dl>
+    )}
+    <div class="pcard__btns">
+      {amazon && <a class="btn" href={amazon} rel="nofollow sponsored noopener" target="_blank">Amazonで見る</a>}
+      {rakuten && <a class="btn btn--ghost" href={rakuten} rel="nofollow sponsored noopener" target="_blank">楽天市場で見る</a>}
+    </div>
+  </div>
+</div>
+
+<style>
+  .pcard { display: grid; grid-template-columns: 240px 1fr; gap: 1.4rem; margin: 2rem 0; padding: 1.3rem; }
+  .pcard__media { position: relative; }
+  .pcard__media img { width: 100%; height: auto; border-radius: var(--radius); background: var(--paper-sunk); }
+  .pcard__credit { display: block; margin-top: .35rem; font-size: .68rem; color: var(--ink-faint); }
+  .pcard__name { font-size: 1.1rem; margin: .5rem 0 .3rem; }
+  .pcard__price { margin: 0 0 .6rem; font-family: var(--num); font-weight: 700; color: var(--amber); }
+  .pcard__verdict { margin: 0 0 .8rem; font-size: .93rem; color: var(--ink-soft); line-height: 1.75; }
+  .pcard__specs { display: grid; grid-template-columns: auto 1fr; gap: .3rem 1rem; margin: 0 0 1rem; font-size: .86rem; }
+  .pcard__specs dt { color: var(--ink-faint); }
+  .pcard__specs dd { margin: 0; font-family: var(--num); font-variant-numeric: tabular-nums; font-weight: 700; }
+  .pcard__btns { display: flex; gap: .7rem; flex-wrap: wrap; }
+  @media (max-width: 640px) { .pcard { grid-template-columns: 1fr; } }
+</style>

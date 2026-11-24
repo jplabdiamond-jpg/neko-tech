@@ -1,6 +1,7 @@
 ---
 title: 自動猫トイレの後悔5つ｜1年使って分かった本当のデメリット
 description: 自動猫トイレを1年使って分かったデメリットを、専用砂のコスト・動作音・設置スペースなど実測値つきで正直に書きます。買うべき人とやめるべき人も整理しました。
+format: comparison
 category: litter-box
 planNo: 17
 keyword: 自動猫トイレ デメリット

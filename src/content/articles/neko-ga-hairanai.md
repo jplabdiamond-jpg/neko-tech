@@ -1,6 +1,7 @@
 ---
 title: 猫が自動トイレに入らない5つの理由と慣らし方【実践手順】
 description: 自動猫トイレを導入したのに猫が入らない。原因を5つに切り分け、実際に慣れさせるまでにやった手順を順番に紹介します。慣れるまでの期間の目安も書きました。
+format: troubleshoot
 category: litter-box
 planNo: 1
 keyword: 自動猫トイレ 猫が入らない

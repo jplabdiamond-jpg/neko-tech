@@ -1,33 +1,74 @@
 ---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import { categoryLabels } from '../lib/site';
+import { formats, type FormatId } from '../lib/editorial';
+
 interface Props {
   href: string;
   title: string;
   description: string;
   category: string;
+  format?: FormatId;
   verified?: string;
   date: Date;
+  hero?: ImageMetadata;
+  heroRemote?: string;
+  heroAlt?: string;
 }
-const { href, title, description, category, verified, date } = Astro.props as Props;
+const { href, title, description, category, format, verified, date, hero, heroRemote, heroAlt } =
+  Astro.props as Props;
 const d = date.toISOString().slice(0, 10).replace(/-/g, '.');
+const fmt = format ? formats[format] : undefined;
 ---
 <article class="acard">
-  <div class="acard__meta">
-    <span class="acard__cat">{categoryLabels[category] ?? category}</span>
-    {verified && <span class="badge">{verified}</span>}
+  <a class="acard__thumb" href={href} aria-hidden="true" tabindex="-1">
+    {hero ? (
+      <Image src={hero} alt="" width={420} densities={[1, 2]} loading="lazy" decoding="async" />
+    ) : heroRemote ? (
+      <img src={heroRemote} alt="" loading="lazy" decoding="async" />
+    ) : (
+      /* 画像未設定時のフォールバック。崩れた見た目にせず、ブランドマークで埋める */
+      <span class="acard__ph">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M3 16 Q16 5.5 29 16 Q16 26.5 3 16 Z" fill="currentColor"/>
+          <ellipse cx="16" cy="16" rx="5.4" ry="7.6" fill="var(--amber)"/>
+          <path d="M16 9 Q17.9 16 16 23 Q14.1 16 16 9 Z" fill="var(--paper-sunk)"/>
+        </svg>
+      </span>
+    )}
+  </a>
+
+  <div class="acard__body">
+    <div class="acard__meta">
+      <span class="acard__cat">{categoryLabels[category] ?? category}</span>
+      {fmt && <span class="acard__fmt">{fmt.badge}</span>}
+      {verified && <span class="badge">{verified}</span>}
+    </div>
+    <h3 class="acard__title"><a href={href}>{title}</a></h3>
+    <p class="acard__desc">{description}</p>
+    <time class="acard__date" datetime={date.toISOString()}>{d}</time>
   </div>
-  <h3 class="acard__title"><a href={href}>{title}</a></h3>
-  <p class="acard__desc">{description}</p>
-  <time class="acard__date" datetime={date.toISOString()}>{d}</time>
 </article>
 
 <style>
-  .acard { padding: 1.3rem 0; border-top: 1px solid var(--rule); }
-  .acard__meta { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .5rem; }
-  .acard__cat { font-size: .75rem; font-weight: 700; letter-spacing: .06em; color: var(--amber); }
-  .acard__title { font-size: 1.12rem; line-height: 1.5; margin-bottom: .4rem; }
+  .acard { display: grid; grid-template-columns: 180px 1fr; gap: 1.2rem; padding: 1.3rem 0; border-top: 1px solid var(--rule); }
+  .acard__thumb { display: block; border-radius: var(--radius); overflow: hidden; background: var(--paper-sunk); aspect-ratio: 4 / 3; }
+  .acard__thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .acard__ph { display: grid; place-items: center; width: 100%; height: 100%; color: var(--rule); }
+  .acard__ph svg { width: 44%; }
+
+  .acard__meta { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .45rem; }
+  .acard__cat { font-size: .74rem; font-weight: 700; letter-spacing: .06em; color: var(--amber); }
+  .acard__fmt { font-size: .7rem; font-weight: 700; padding: .15em .6em; border: 1px solid var(--rule); border-radius: 999px; color: var(--ink-faint); }
+  .acard__title { font-size: 1.1rem; line-height: 1.5; margin-bottom: .4rem; }
   .acard__title a { text-decoration: none; }
   .acard__title a:hover { text-decoration: underline; text-decoration-color: var(--amber); text-decoration-thickness: 2px; }
-  .acard__desc { margin: 0 0 .5rem; font-size: .92rem; color: var(--ink-soft); line-height: 1.75; }
-  .acard__date { font-family: var(--num); font-size: .76rem; color: var(--ink-faint); }
+  .acard__desc { margin: 0 0 .5rem; font-size: .9rem; color: var(--ink-soft); line-height: 1.75; }
+  .acard__date { font-family: var(--num); font-size: .74rem; color: var(--ink-faint); }
+
+  @media (max-width: 560px) {
+    .acard { grid-template-columns: 110px 1fr; gap: .9rem; }
+    .acard__desc { display: none; }
+  }
 </style>

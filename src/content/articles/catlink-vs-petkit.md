@@ -1,6 +1,7 @@
 ---
 title: CATLINKとPETKITどっちを買うべき？実機2台を半年使い比べた結論
 description: 自動猫トイレの主要2ブランドCATLINKとPETKITを実機2台で半年使い比べ、動作音・回収精度・専用消耗品のコスト・アプリの使いやすさを実測で比較しました。
+format: comparison
 category: litter-box
 planNo: 16
 keyword: CATLINK PETKIT 比較

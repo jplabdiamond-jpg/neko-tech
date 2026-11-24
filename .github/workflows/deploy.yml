@@ -24,6 +24,14 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      # 楽天APIから商品画像・価格を取得。Secret未設定ならスキップされる
+      - name: Fetch product data (Rakuten)
+        env:
+          RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+          RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
+        run: node scripts/fetch-rakuten.mjs
+
       - run: npm run build
 
       # プロジェクトが無ければ作る。既にあれば失敗するが無視して進む。

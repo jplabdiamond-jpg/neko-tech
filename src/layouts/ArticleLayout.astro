@@ -1,6 +1,9 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import Figure from '../components/Figure.astro';
 import Toc from '../components/Toc.astro';
+import { formats, type FormatId } from '../lib/editorial';
+import type { ImageMetadata } from 'astro';
 import RelatedArticles from '../components/RelatedArticles.astro';
 import { categoryLabels, site, owner, ownerReady } from '../lib/site';
 
@@ -14,9 +17,17 @@ interface Props {
   publishDate: Date;
   updatedDate?: Date;
   headings?: Heading[];
+  format?: FormatId;
+  hero?: ImageMetadata;
+  heroRemote?: string;
+  heroAlt?: string;
+  heroCredit?: string;
 }
-const { id, title, description, category, verified, publishDate, updatedDate, headings = [] } =
-  Astro.props as Props;
+const {
+  id, title, description, category, verified, publishDate, updatedDate,
+  headings = [], format, hero, heroRemote, heroAlt, heroCredit,
+} = Astro.props as Props;
+const formatDef = format ? formats[format] : undefined;
 const fmt = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '.');
 
 const base = Astro.site ?? new URL(site.url);
@@ -62,6 +73,7 @@ const schema = [
     <header class="article__head">
       <h1>{title}</h1>
       <div class="article__meta">
+        {formatDef && <span class="article__fmt">{formatDef.badge}</span>}
         {verified && <span class="badge">{verified}</span>}
         <time datetime={publishDate.toISOString()}>公開 {fmt(publishDate)}</time>
         {updatedDate && <time datetime={updatedDate.toISOString()}>更新 {fmt(updatedDate)}</time>}
@@ -72,6 +84,15 @@ const schema = [
         紹介料の有無で順位を変えることはありません。
       </p>
     </header>
+
+    {(hero || heroRemote) && (
+      <Figure
+        src={(hero ?? heroRemote)!}
+        alt={heroAlt ?? title}
+        credit={heroCredit}
+        width={880}
+      />
+    )}
 
     <Toc headings={headings} />
 
@@ -90,5 +111,6 @@ const schema = [
   .crumbs a:hover { color: var(--amber); }
   .article__head { padding-bottom: 1.8rem; border-bottom: 1px solid var(--rule); }
   .article__meta { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; margin: .9rem 0; font-family: var(--num); font-size: .78rem; color: var(--ink-faint); }
+  .article__fmt { padding: .2em .7em; border: 1px solid var(--rule); border-radius: 999px; font-family: var(--sans); font-size: .72rem; font-weight: 700; color: var(--ink-faint); }
   .article__lead { font-size: 1.02rem; color: var(--ink-soft); margin: 1rem 0 1.3rem; }
 </style>

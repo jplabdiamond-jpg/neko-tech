@@ -3,19 +3,39 @@ import { glob } from 'astro/loaders';
 
 const articles = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/articles' }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    category: z.enum(['litter-box', 'monitoring', 'supplies', 'life']),
-    // キーワード設計シートの管理番号と対応させる
-    planNo: z.number().optional(),
-    keyword: z.string().optional(),
-    publishDate: z.coerce.date(),
-    updatedDate: z.coerce.date().optional(),
-    // 「実機を○ヶ月使った」という独自性の明示。2026/4の規約改定対応の要
-    verified: z.string().optional(),
-    draft: z.boolean().default(false),
-  }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      description: z.string(),
+      category: z.enum(['litter-box', 'monitoring', 'supplies', 'life']),
+      /** 記事フォーマット。ローテーションの管理に使う（src/lib/editorial.ts） */
+      format: z
+        .enum(['comparison', 'pick', 'cost', 'troubleshoot', 'guide'])
+        .default('guide'),
+
+      // キーワード設計シートの管理番号と対応させる
+      planNo: z.number().optional(),
+      keyword: z.string().optional(),
+
+      publishDate: z.coerce.date(),
+      updatedDate: z.coerce.date().optional(),
+      verified: z.string().optional(),
+      draft: z.boolean().default(false),
+
+      /**
+       * サムネイル。自前撮影の画像を src/assets/articles/ に置いて相対パスで指定する。
+       * Astroが自動で最適化・レスポンシブ化する。こちらが第一候補。
+       */
+      hero: image().optional(),
+      /**
+       * 自前の画像が無い場合のみ。楽天商品検索APIが返す画像URLを入れる。
+       * Amazonの画像URLをここに入れてはいけない（運営規約違反）。
+       */
+      heroRemote: z.string().url().optional(),
+      heroAlt: z.string().optional(),
+      /** 画像の出所表示が必要な場合（例: 楽天市場） */
+      heroCredit: z.string().optional(),
+    }),
 });
 
 export const collections = { articles };

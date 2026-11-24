@@ -1,6 +1,7 @@
 ---
 title: このサイトの検証方法とレビュー基準
 description: neko-techがどのように猫用デバイスを検証し、何を根拠に順位をつけているかを公開します。実測する項目、検証期間、アフィリエイトとの関係まで明記します。
+format: guide
 category: life
 publishDate: 2026-11-24
 verified: 検証基準の公開
