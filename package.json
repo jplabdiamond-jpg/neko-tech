@@ -12,6 +12,7 @@
     "check:images": "node scripts/check-images.mjs"
   },
   "dependencies": {
+    "@astrojs/mdx": "^4.3.14",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.2.1",
     "astro": "^5.5.2"
