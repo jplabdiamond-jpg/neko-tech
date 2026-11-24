@@ -62,7 +62,7 @@ const schema = [
   },
 ];
 ---
-<BaseLayout title={title} description={description} ogType="article" schema={schema}>
+<BaseLayout title={title} description={description} ogType="article" schema={schema} ogImage={heroRemote?.startsWith('/thumbs/') ? heroRemote : undefined}>
   <article class="wrap--narrow article">
     <nav class="crumbs" aria-label="パンくず">
       <a href="/">ホーム</a>

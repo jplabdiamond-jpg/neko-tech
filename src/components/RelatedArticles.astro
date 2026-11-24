@@ -1,12 +1,12 @@
 ---
-import { getCollection } from 'astro:content';
+import { getPublishedArticles } from '../lib/content';
 import { categoryLabels } from '../lib/site';
 
 /** 設計したピラミッド構造（集客→収益）を運用で崩さないための自動内部リンク。 */
 interface Props { currentId: string; category: string }
 const { currentId, category } = Astro.props as Props;
 
-const all = await getCollection('articles', ({ data }) => !data.draft);
+const all = await getPublishedArticles();
 const sameCat = all
   .filter((a) => a.id !== currentId && a.data.category === category)
   .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())

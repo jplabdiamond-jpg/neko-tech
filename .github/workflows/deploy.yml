@@ -4,9 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  # 商品画像・価格を毎日更新する（コードが変わらなくても再デプロイされる）
+  # 1日3回ビルドし、公開日を迎えた予約記事を自動公開する。
+  # あわせて楽天の商品画像・価格も更新される。
   schedule:
-    - cron: '0 20 * * *'  # UTC 20:00 = JST 05:00
+    - cron: '0 22 * * *'  # JST 07:00
+    - cron: '0 3 * * *'   # JST 12:00
+    - cron: '0 10 * * *'  # JST 19:00
 
 concurrency:
   group: pages-deploy

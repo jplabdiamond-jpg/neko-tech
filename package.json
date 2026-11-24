@@ -10,7 +10,9 @@
     "check": "astro check",
     "fetch:products": "node scripts/fetch-rakuten.mjs",
     "check:images": "node scripts/check-images.mjs",
-    "lint:content": "node scripts/lint-content.mjs"
+    "lint:content": "node scripts/lint-content.mjs",
+    "thumbs": "node scripts/make-thumbnails.mjs",
+    "schedule": "node scripts/schedule-articles.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.14",
@@ -19,6 +21,7 @@
     "astro": "^5.5.2"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "wrangler": "^4.167.0"
   }
 }
