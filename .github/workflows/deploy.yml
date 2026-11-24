@@ -37,6 +37,9 @@ jobs:
           RAKUTEN_REFERER: https://neko-tech.pages.dev/
         run: node scripts/fetch-rakuten.mjs
 
+      # 薬機法・救急対応の検査。公開記事にNGがあればここで止まる
+      - run: node scripts/lint-content.mjs --strict
+
       - run: npm run build
 
       # プロジェクトが無ければ作る。既にあれば失敗するが無視して進む。

@@ -1,0 +1,47 @@
+---
+/**
+ * 受診勧奨ブロック。健康系記事では必須（scripts/lint-content.mjs で検査）。
+ *
+ * emergency は記事冒頭に置き、商品CTAより必ず上に配置すること。
+ * 猫の尿路閉塞のように数時間で命に関わる症状があるため、
+ * 「様子を見る」「まず商品で対処」へ誘導してはいけない。
+ */
+interface Props {
+  level?: 'emergency' | 'caution' | 'info';
+  title?: string;
+}
+const { level = 'info', title } = Astro.props as Props;
+const heading =
+  title ??
+  (level === 'emergency'
+    ? 'この症状はすぐに動物病院へ'
+    : level === 'caution'
+      ? '受診を検討すべき目安'
+      : '獣医師にご相談ください');
+---
+<aside class:list={['vet', `vet--${level}`]} role="note">
+  <p class="vet__head">{heading}</p>
+  <div class="vet__body"><slot /></div>
+  {level === 'emergency' && (
+    <p class="vet__foot">
+      夜間・休日の場合は、お住まいの地域の夜間救急動物病院をお探しください。
+      判断に迷う時間が致命的になる症状があります。
+    </p>
+  )}
+</aside>
+
+<style>
+  .vet { margin: 2rem 0; padding: 1.1rem 1.3rem; border-radius: var(--radius-lg); border: 1px solid; }
+  .vet__head { margin: 0 0 .5rem; font-weight: 700; font-size: 1rem; }
+  .vet__body { font-size: .94rem; line-height: 1.8; }
+  .vet__body :global(p) { margin: 0 0 .6em; }
+  .vet__body :global(p:last-child) { margin-bottom: 0; }
+  .vet__body :global(ul) { margin: .4em 0; padding-left: 1.2em; }
+  .vet__foot { margin: .8rem 0 0; font-size: .84rem; opacity: .85; }
+
+  /* 緊急は他のどの要素よりも目立たせる */
+  .vet--emergency { background: #fdf0ec; border-color: #c7442a; color: #8d2d1a; }
+  .vet--emergency .vet__head { font-size: 1.08rem; }
+  .vet--caution { background: var(--amber-soft); border-color: var(--amber); color: var(--amber); }
+  .vet--info { background: var(--data-soft); border-color: var(--data); color: var(--data); }
+</style>

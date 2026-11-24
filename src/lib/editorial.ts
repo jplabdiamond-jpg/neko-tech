@@ -6,7 +6,7 @@
  * 機械的に保つ。
  */
 
-export type FormatId = 'comparison' | 'pick' | 'cost' | 'troubleshoot' | 'guide';
+export type FormatId = 'comparison' | 'pick' | 'cost' | 'troubleshoot' | 'guide' | 'health';
 
 export interface FormatDef {
   label: string;
@@ -52,6 +52,16 @@ export const formats: Record<FormatId, FormatDef> = {
     description:
       '競合が薄く最速で上位化する。指名検索の受け皿になり、消耗品への導線を持つ。',
   },
+  health: {
+    label: '健康・症状ガイド',
+    badge: '健康',
+    role: '集客',
+    images: '観察ポイントの図版。症状写真は使わない',
+    description:
+      '症状の一般的な解説と受診の目安を示す。治療法や診断は書かない。' +
+      '記録・観察に使うデバイス（自動トイレの排尿記録、体重計、給水器）と' +
+      'ペット保険への導線を持つ。検索volumeが大きく、感情的な切迫度も高い。',
+  },
   guide: {
     label: '暮らしガイド',
     badge: 'ガイド',
@@ -71,8 +81,10 @@ export const rotation: FormatId[] = [
   'troubleshoot',
   'troubleshoot',
   'cost',
+  'health',
   'guide',
   'comparison',
+  'health',
   'guide',
   'pick',
   'troubleshoot',

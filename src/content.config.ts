@@ -10,7 +10,7 @@ const articles = defineCollection({
       category: z.enum(['litter-box', 'monitoring', 'supplies', 'life']),
       /** 記事フォーマット。ローテーションの管理に使う（src/lib/editorial.ts） */
       format: z
-        .enum(['comparison', 'pick', 'cost', 'troubleshoot', 'guide'])
+        .enum(['comparison', 'pick', 'cost', 'troubleshoot', 'guide', 'health'])
         .default('guide'),
 
       // キーワード設計シートの管理番号と対応させる

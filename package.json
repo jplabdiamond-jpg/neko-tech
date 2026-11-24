@@ -9,7 +9,8 @@
     "preview": "astro preview",
     "check": "astro check",
     "fetch:products": "node scripts/fetch-rakuten.mjs",
-    "check:images": "node scripts/check-images.mjs"
+    "check:images": "node scripts/check-images.mjs",
+    "lint:content": "node scripts/lint-content.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.14",
