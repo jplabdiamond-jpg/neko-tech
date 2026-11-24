@@ -115,28 +115,75 @@ function toHeadline(title) {
   return cut + '…';
 }
 
-/** 見出しを最大3行に折り返す。1行の文字数は行数が3以内に収まるよう自動調整 */
+/**
+ * 見出しを文節単位の塊に分ける。塊の途中では改行しない。
+ *   自動猫トイレの3年総額を計算
+ *   → [自動猫][トイレの][3年][総額を][計算]
+ * 「3」と「年」の間のような不自然な位置で切れるのを防ぐ。
+ */
+const COUNTERS = '年月日時間分秒台回匹頭本個人つ名件%％万円割倍歳種選位泊枚杯';
+function chunks(text) {
+  const re = new RegExp(
+    `[A-Za-z0-9]+[${COUNTERS}]*` + // 英数字（＋助数詞）
+    `|[ァ-ヶｦ-ﾟー]+` +              // カタカナ語
+    `|[一-龠々〆ヵヶ]+` +            // 漢字の連なり
+    `|[ぁ-ん]+` +                    // ひらがな
+    `|[^\s]`,                       // 記号など
+    'gu'
+  );
+  const raw = text.match(re) ?? [text];
+
+  // ひらがな（助詞・送り仮名）は直前の塊にくっつける。
+  // 「トイレ」＋「の」→「トイレの」となり、助詞の直後で改行できる。
+  const out = [];
+  for (const t of raw) {
+    const isKana = /^[ぁ-ん]+$/.test(t);
+    const isPunct = /^[、。！？・…]$/.test(t);
+    if ((isKana || isPunct) && out.length) out[out.length - 1] += t;
+    else out.push(t);
+  }
+  return out;
+}
+
+/** 見出しを最大3行に折り返す。塊の途中では切らない */
 function wrap(title) {
   const head = toHeadline(title);
+  const parts = chunks(head);
   const total = width(head);
-  const perLine = Math.max(8, Math.min(14, Math.ceil(total / 3)));
 
-  const lines = [];
-  let cur = '';
-  for (const ch of [...head]) {
-    if (width(cur + ch) > perLine && cur) { lines.push(cur); cur = ''; }
-    cur += ch;
-  }
-  if (cur) lines.push(cur);
-
-  // 行頭禁則
-  for (let i = 1; i < lines.length; i++) {
-    while (lines[i] && /^[、。）」｜・？！]/.test(lines[i])) {
-      lines[i - 1] += lines[i][0];
-      lines[i] = lines[i].slice(1);
+  const pack = (limit) => {
+    const lines = [];
+    let cur = '';
+    for (const part of parts) {
+      if (cur && width(cur + part) > limit) { lines.push(cur); cur = ''; }
+      cur += part;
     }
+    if (cur) lines.push(cur);
+    return lines;
+  };
+
+  // 1行の上限を少しずつ広げ、目標行数に収まった時点で採用する。
+  // 上限を固定すると塊が入りきらず、短い見出しでも行数が増えてしまう。
+  const packInto = (maxLines) => {
+    const start = Math.max(Math.ceil(total / maxLines), ...parts.map(width));
+    for (let limit = start; limit <= total; limit++) {
+      const lines = pack(limit);
+      if (lines.length <= maxLines) return lines;
+    }
+    return pack(total);
+  };
+
+  const target = total <= 9 ? 1 : total <= 19 ? 2 : 3;
+  let lines = packInto(target);
+
+  // 1行が長すぎると級数が小さくなり読みにくい。その場合は行数を増やす
+  const MAX_PER_LINE = 13;
+  for (let n = target; n < 3; n++) {
+    if (Math.max(...lines.map(width)) <= MAX_PER_LINE) break;
+    lines = packInto(n + 1);
   }
-  return lines.filter(Boolean).slice(0, 3);
+
+  return lines.slice(0, 3);
 }
 
 function buildSVG({ lines, label }) {
