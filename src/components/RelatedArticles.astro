@@ -1,0 +1,45 @@
+---
+import { getCollection } from 'astro:content';
+import { categoryLabels } from '../lib/site';
+
+/** 設計したピラミッド構造（集客→収益）を運用で崩さないための自動内部リンク。 */
+interface Props { currentId: string; category: string }
+const { currentId, category } = Astro.props as Props;
+
+const all = await getCollection('articles', ({ data }) => !data.draft);
+const sameCat = all
+  .filter((a) => a.id !== currentId && a.data.category === category)
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
+  .slice(0, 3);
+const others = all
+  .filter((a) => a.id !== currentId && a.data.category !== category)
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
+  .slice(0, Math.max(0, 4 - sameCat.length));
+const related = [...sameCat, ...others];
+---
+{related.length > 0 && (
+  <aside class="related" aria-labelledby="related-title">
+    <h2 id="related-title">あわせて読みたい</h2>
+    <ul>
+      {related.map((a) => (
+        <li>
+          <a href={`/articles/${a.id}/`}>
+            <span class="related__cat">{categoryLabels[a.data.category]}</span>
+            <span class="related__title">{a.data.title}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </aside>
+)}
+
+<style>
+  .related { margin-top: 3.5rem; padding-top: 1.5rem; border-top: 2px solid var(--ink); }
+  .related h2 { font-size: .85rem; letter-spacing: .12em; color: var(--ink-faint); margin-bottom: 1rem; }
+  .related ul { list-style: none; margin: 0; padding: 0; }
+  .related li + li { border-top: 1px solid var(--rule); }
+  .related a { display: grid; gap: .2rem; padding: .85rem 0; text-decoration: none; }
+  .related a:hover .related__title { color: var(--amber); }
+  .related__cat { font-size: .72rem; font-weight: 700; letter-spacing: .06em; color: var(--amber); }
+  .related__title { font-size: .98rem; font-weight: 700; line-height: 1.5; }
+</style>

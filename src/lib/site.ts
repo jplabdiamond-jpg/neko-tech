@@ -15,6 +15,19 @@ export const site = {
   tools: [{ href: '/tools/cost-simulator/', label: '年間コスト計算機' }],
 } as const;
 
+/**
+ * 運営者情報。ASP審査とE-E-A-Tのために必要。
+ * ここが空の間、/about/ は「準備中」表示かつ noindex になる。
+ * ハンドルネームでも可。連絡先はメールアドレスかフォームのURL。
+ */
+export const owner = {
+  name: '',      // 例: 'さね' / 'neko-tech編集部'
+  contact: '',   // 例: 'contact@neko-tech.com'
+  since: '2026', // サイト開設年
+} as const;
+
+export const ownerReady = owner.name !== '' && owner.contact !== '';
+
 export const categoryLabels: Record<string, string> = {
   'litter-box': '自動トイレ',
   monitoring: '見守り・給餌',

@@ -1,0 +1,73 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { site, owner, ownerReady } from '../../lib/site';
+---
+<BaseLayout
+  title="運営者情報"
+  description={`${site.name}の運営者情報とサイトの方針。`}
+  noindex={!ownerReady}
+>
+  <div class="wrap--narrow page">
+    <h1>運営者情報</h1>
+
+    {ownerReady ? (
+      <dl class="info">
+        <dt>サイト名</dt><dd>{site.name}（{site.nameJa}）</dd>
+        <dt>運営者</dt><dd>{owner.name}</dd>
+        <dt>連絡先</dt><dd>{owner.contact}</dd>
+        <dt>開設</dt><dd>{owner.since}年</dd>
+      </dl>
+    ) : (
+      <p class="todo">
+        運営者情報は準備中です。<code>src/lib/site.ts</code> の <code>owner</code> を設定すると、
+        このページが有効になります（設定するまで検索エンジンには登録されません）。
+      </p>
+    )}
+
+    <h2>このサイトについて</h2>
+    <p>
+      {site.name}は、自動猫トイレ・見守りカメラ・自動給餌器といった猫用デバイスを、
+      実機の長期使用と実測データで比較するレビューサイトです。
+    </p>
+    <p>
+      猫用デバイスは本体だけで数万円、消耗品は毎月かかり続けます。
+      スペック表を並べ直しただけの記事では、買ったあとに後悔するかどうかは分かりません。
+      このサイトでは動作音・猫砂の消費量・電気代を自分で測り、
+      数年単位の総額まで含めて判断できる情報を出すことを方針としています。
+    </p>
+
+    <h2>検証の方針</h2>
+    <p>
+      レビューする製品は原則として自分で購入し、自宅で使用します。
+      メーカーから貸与や提供を受けた場合は記事冒頭に明記します。
+      詳しい検証方法は<a href="/articles/review-policy/">こちら</a>に公開しています。
+    </p>
+
+    <h2>免責事項</h2>
+    <p>
+      当サイトの情報は掲載時点のものであり、価格・仕様・在庫は変動します。
+      最終的な内容は各販売ページでご確認ください。
+      掲載情報の利用により生じた損害について、当サイトは責任を負いかねます。
+    </p>
+    <p>
+      猫の健康に関わる判断については、必ず獣医師にご相談ください。
+      当サイトは診断や治療法の判断を行いません。
+    </p>
+
+    <h2>お問い合わせ</h2>
+    {ownerReady
+      ? <p>記事の誤りのご指摘、取材・掲載のご依頼は <a href={`mailto:${owner.contact}`}>{owner.contact}</a> までご連絡ください。</p>
+      : <p class="todo">連絡先は準備中です。</p>}
+  </div>
+</BaseLayout>
+
+<style>
+  .page { padding: 2.5rem 0 0; }
+  .page h2 { margin-top: 2.6rem; padding-top: .9rem; border-top: 2px solid var(--ink); }
+  .page p { color: var(--ink-soft); }
+  .info { display: grid; grid-template-columns: auto 1fr; gap: .6rem 1.5rem; margin: 1.5rem 0 0; padding: 1.2rem 1.4rem; background: var(--paper-sunk); border-radius: var(--radius-lg); }
+  .info dt { font-size: .85rem; color: var(--ink-faint); font-weight: 700; }
+  .info dd { margin: 0; }
+  .todo { padding: .9rem 1.1rem; background: var(--amber-soft); color: var(--amber); border-radius: var(--radius); font-size: .9rem; }
+  .todo code { font-family: var(--num); font-size: .85em; }
+</style>

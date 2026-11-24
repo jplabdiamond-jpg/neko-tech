@@ -1,0 +1,33 @@
+---
+/** デメリット記事・レビュー記事の型。結論を先に出すとCVRが上がる。 */
+interface Props { pros: string[]; cons: string[]; verdict?: string }
+const { pros, cons, verdict } = Astro.props as Props;
+---
+<div class="pc">
+  {verdict && <p class="pc__verdict">{verdict}</p>}
+  <div class="pc__cols">
+    <div class="pc__col pc__col--pro">
+      <h3>良かった点</h3>
+      <ul>{pros.map((p) => <li>{p}</li>)}</ul>
+    </div>
+    <div class="pc__col pc__col--con">
+      <h3>気になった点</h3>
+      <ul>{cons.map((c) => <li>{c}</li>)}</ul>
+    </div>
+  </div>
+</div>
+
+<style>
+  .pc { margin: 2rem 0; }
+  .pc__verdict { margin: 0 0 1rem; padding: .9rem 1.1rem; background: var(--data-soft); color: var(--data); border-radius: var(--radius); font-weight: 700; line-height: 1.7; }
+  .pc__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .pc__col { padding: 1rem 1.2rem; border-radius: var(--radius-lg); border: 1px solid var(--rule); background: var(--card); }
+  .pc__col h3 { font-size: .8rem; letter-spacing: .08em; margin-bottom: .6rem; }
+  .pc__col--pro h3 { color: var(--good); }
+  .pc__col--con h3 { color: var(--amber); }
+  .pc__col h3::before { display: none; }
+  .pc__col ul { margin: 0; padding-left: 1.1em; }
+  .pc__col li { font-size: .92rem; color: var(--ink-soft); line-height: 1.7; }
+  .pc__col li + li { margin-top: .4rem; }
+  @media (max-width: 560px) { .pc__cols { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,28 @@
+---
+/** 実測値つきスペック比較表。横スクロールとタブular数字を担保する。 */
+interface Props { headers: string[]; rows: (string | number)[][]; caption?: string }
+const { headers, rows, caption } = Astro.props as Props;
+---
+<figure class="spec">
+  <div class="table-scroll">
+    <table>
+      <thead><tr>{headers.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr>{r.map((c, i) => (i === 0 ? <th scope="row">{c}</th> : <td>{c}</td>))}</tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .spec { margin: 2rem 0; }
+  .spec table { width: 100%; border-collapse: collapse; font-size: .92rem; min-width: 32rem; }
+  .spec th, .spec td { padding: .7em .9em; border-bottom: 1px solid var(--rule); text-align: left; white-space: nowrap; }
+  .spec thead th { background: var(--paper-sunk); font-size: .82rem; }
+  .spec tbody th { font-weight: 700; }
+  .spec td { font-family: var(--num); font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+  .spec figcaption { margin-top: .6rem; font-size: .78rem; color: var(--ink-faint); }
+</style>

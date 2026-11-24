@@ -59,6 +59,28 @@ draft: true            # true の間は公開されない
 - **Amazon一本足を避ける。** 楽天とASP（ペット保険等）を併用する
 - アフィリエイトリンクには `rel="nofollow sponsored"` を付ける（`AffiliateCTA` が対応済み）
 
+## 公開前に必ず設定すること
+
+`src/lib/site.ts` の `owner` を埋める。**未設定の間 `/about/` は noindex** になり、
+記事の構造化データからも著者情報が省かれる。ASP審査では運営者情報と連絡先の
+掲載を求められることが多いので、審査申請前に設定すること。
+
+```ts
+export const owner = {
+  name: 'さね',                 // ハンドルネーム可
+  contact: 'contact@example.com', // メールアドレスまたは問い合わせフォームURL
+  since: '2026',
+} as const;
+```
+
+## OG画像の再生成
+
+`public/og.png` はSVGから生成している。文言を変える場合:
+
+```bash
+rsvg-convert -w 1200 -h 630 -o public/og.png og-source.svg
+```
+
 ## 主要コンポーネント
 
 | ファイル | 役割 |
@@ -66,4 +88,15 @@ draft: true            # true の間は公開されない
 | `src/components/CostCalculator.astro` | 年間コスト計算機。本サイト最大の差別化要素 |
 | `src/components/AffiliateCTA.astro` | 収益リンク。rel属性と価格変動の注記を内包 |
 | `src/layouts/ArticleLayout.astro` | 記事テンプレ。検証期間バッジとPR表記を自動挿入 |
-| `src/lib/site.ts` | サイト名・ナビ・カテゴリ定義 |
+| `src/lib/site.ts` | サイト名・ナビ・カテゴリ・運営者情報 |
+| `src/components/Toc.astro` | 目次。h2が3つ以上ある記事で自動表示 |
+| `src/components/RelatedArticles.astro` | 関連記事。同カテゴリ優先で自動生成 |
+| `src/components/ProsCons.astro` | 良かった点／気になった点。レビュー記事の型 |
+| `src/components/SpecTable.astro` | 実測値つきスペック比較表 |
+
+## SEO
+
+- JSON-LD: 記事に Article + BreadcrumbList、トップに WebSite を出力
+- sitemap: `/sitemap-index.xml`（自動生成）
+- RSS: `/rss.xml`
+- OG画像: 全ページ共通で `/og.png`

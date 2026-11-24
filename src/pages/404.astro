@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../lib/site';
+---
+<BaseLayout title="ページが見つかりません" noindex>
+  <div class="wrap--narrow nf">
+    <p class="nf__code">404</p>
+    <h1>ページが見つかりませんでした</h1>
+    <p class="nf__lead">
+      URLが変更されたか、記事が削除された可能性があります。
+      下のカテゴリからお探しください。
+    </p>
+    <ul class="nf__links">
+      {site.nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
+      <li><a href="/tools/cost-simulator/">年間コスト計算機</a></li>
+    </ul>
+    <p><a class="btn" href="/">トップページへ戻る</a></p>
+  </div>
+</BaseLayout>
+
+<style>
+  .nf { padding: 4rem 0 2rem; }
+  .nf__code { font-family: var(--num); font-size: 4rem; font-weight: 700; color: var(--rule); margin: 0 0 .5rem; line-height: 1; }
+  .nf__lead { color: var(--ink-soft); margin: 1rem 0 1.8rem; }
+  .nf__links { list-style: none; margin: 0 0 2rem; padding: 0; display: flex; gap: 1rem; flex-wrap: wrap; }
+  .nf__links a { font-size: .92rem; font-weight: 700; color: var(--ink-soft); text-decoration: none; border-bottom: 2px solid var(--amber-soft); }
+  .nf__links a:hover { border-bottom-color: var(--amber); }
+</style>

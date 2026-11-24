@@ -9,12 +9,15 @@ interface Props {
   description?: string;
   ogType?: 'website' | 'article';
   noindex?: boolean;
+  /** JSON-LD。検索結果でのリッチリザルトと E-E-A-T 評価に効く */
+  schema?: Record<string, unknown> | Record<string, unknown>[];
 }
 const {
   title,
   description = site.description,
   ogType = 'website',
   noindex = false,
+  schema,
 } = Astro.props as Props;
 
 const pageTitle = title ? `${title} | ${site.name}` : `${site.name} — ${site.tagline}`;
@@ -38,8 +41,16 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
     <meta property="og:locale" content="ja_JP" />
     <meta name="twitter:card" content="summary_large_image" />
 
+    <meta property="og:image" content={new URL('/og.png', Astro.site ?? site.url).href} />
+    <meta name="twitter:image" content={new URL('/og.png', Astro.site ?? site.url).href} />
+
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="alternate" type="application/rss+xml" title={site.name} href="/rss.xml" />
+
+    {schema && (
+      <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    )}
   </head>
   <body>
     <a href="#main" class="visually-hidden">本文へスキップ</a>
