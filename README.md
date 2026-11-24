@@ -187,7 +187,11 @@ npm run thumbs -- --dry   # 背景生成せず文字組みだけ確認
 
 | Secret | 内容 |
 | --- | --- |
-| `CLOUDFLARE_AI_TOKEN` | 権限「**Workers AI : Read**」。Pages用のトークンとは別に発行する |
+| `CLOUDFLARE_AI_TOKEN` | 権限「**Workers AI : Read**」。専用に発行する場合 |
+| `CLOUDFLARE_API_TOKEN` | Pages用トークンに Workers AI 権限を追加して兼用する場合はこちらだけでよい |
+
+スクリプトは `CLOUDFLARE_AI_TOKEN` → `CLOUDFLARE_API_TOKEN` の順に探す。
+トークンを分けておくと、漏洩時の影響範囲を画像生成だけに限定できる。
 
 **生成物はリポジトリにコミットする。** ビルドのたびに生成すると画像が変わり続け、
 AI利用料もかかるため。記事追加後に `Generate thumbnails` ワークフローを手動実行すると、

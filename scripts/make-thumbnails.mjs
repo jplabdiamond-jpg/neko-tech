@@ -11,7 +11,8 @@
  *
  * 必要な環境変数:
  *   CLOUDFLARE_ACCOUNT_ID
- *   CLOUDFLARE_AI_TOKEN   … 権限「Workers AI : Read」。Pages用とは別物
+ *   CLOUDFLARE_AI_TOKEN   … 権限「Workers AI : Read」
+ *                           未設定なら CLOUDFLARE_API_TOKEN を使う
  *   CF_AI_MODEL           … 任意。既定は SDXL
  *
  * 使い方:
@@ -26,7 +27,9 @@ import { Resvg } from '@resvg/resvg-js';
 import sharp from 'sharp';
 
 const ACCOUNT = (process.env.CLOUDFLARE_ACCOUNT_ID || '').trim();
-const TOKEN = (process.env.CLOUDFLARE_AI_TOKEN || '').trim();
+// 専用トークンがあればそれを、無ければPages用トークンを使う
+// （1つのトークンに Workers AI 権限を追加して運用する場合に対応）
+const TOKEN = (process.env.CLOUDFLARE_AI_TOKEN || process.env.CLOUDFLARE_API_TOKEN || '').trim();
 const MODEL = process.env.CF_AI_MODEL || '@cf/stabilityai/stable-diffusion-xl-base-1.0';
 const FORCE = process.argv.includes('--force');
 const DRY = process.argv.includes('--dry');
@@ -252,5 +255,5 @@ for (const file of files) {
 
 console.log(`\nサムネイル: 生成 ${made} 件 / 既存 ${skipped} 件`);
 if (!ACCOUNT || !TOKEN) {
-  console.log('CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_AI_TOKEN が未設定のため代替背景で生成しました');
+  console.log('CLOUDFLARE_ACCOUNT_ID / トークンが未設定のため代替背景で生成しました');
 }

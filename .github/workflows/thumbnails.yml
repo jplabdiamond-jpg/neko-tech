@@ -29,6 +29,7 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: 7969ecaa0a1b9bacae1861547c2ec3fe
           CLOUDFLARE_AI_TOKEN: ${{ secrets.CLOUDFLARE_AI_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: node scripts/make-thumbnails.mjs ${{ inputs.force && '--force' || '' }}
 
       - name: Commit
