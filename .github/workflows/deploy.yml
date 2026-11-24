@@ -26,6 +26,15 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      # プロジェクトが無ければ作る。既にあれば失敗するが無視して進む。
+      # これによりダッシュボードでの事前作成が不要になる。
+      - name: Ensure Pages project exists
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 7969ecaa0a1b9bacae1861547c2ec3fe
+        run: npx wrangler pages project create neko-tech --production-branch main
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
