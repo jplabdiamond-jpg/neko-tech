@@ -33,8 +33,10 @@ for (const file of files) {
   const pd = (fm.match(/^publishDate:\s*(.+)$/m) || [])[1]?.trim();
   const planNo = Number((fm.match(/^planNo:\s*(\d+)/m) || [])[1] ?? 9999);
   // 下書き、または公開日が未来のものを対象にする
+  // 未記入箇所が残る記事は公開できない。枠を消費させないため別扱いにする
+  const blocked = /\[要実測\]|\[要追記\]|\[要撮影\]/.test(raw);
   const future = pd && new Date(pd) > now;
-  if (isDraft || future) pending.push({ file, raw, planNo, isDraft });
+  if (isDraft || future) pending.push({ file, raw, planNo, isDraft, blocked });
 }
 
 if (pending.length === 0) {
@@ -42,23 +44,36 @@ if (pending.length === 0) {
   process.exit(0);
 }
 
-// キューの番号順（＝キーワード設計シートの順）に並べる
-pending.sort((a, b) => a.planNo - b.planNo);
+// 公開可能なものだけに枠を割り当てる。
+// 未記入の下書きに枠を与えると、その日は何も公開されない空白になる。
+const ready = pending.filter((p) => !p.blocked).sort((a, b) => a.planNo - b.planNo);
+const blockedList = pending.filter((p) => p.blocked);
+
+if (blockedList.length > 0) {
+  console.log(`未記入のため枠を割り当てない記事: ${blockedList.length} 本`);
+  for (const b of blockedList) console.log(`  - ${b.file}`);
+  console.log('');
+}
+
+if (ready.length === 0) {
+  console.log('公開可能な記事がありません。');
+  process.exit(0);
+}
 
 // 翌日から割り当てる
 const start = new Date(now);
 start.setDate(start.getDate() + 1);
 
-console.log(`公開待ち ${pending.length} 本 / 1日 ${PER_DAY} 本で割り当て\n`);
+console.log(`公開可能 ${ready.length} 本 / 1日 ${PER_DAY} 本で割り当て\n`);
 let changed = 0;
 
-for (let i = 0; i < pending.length; i++) {
+for (let i = 0; i < ready.length; i++) {
   const day = new Date(start);
   day.setDate(day.getDate() + Math.floor(i / PER_DAY));
   const slot = SLOTS[i % PER_DAY];
   const date = day.toISOString().slice(0, 10);
   const stamp = `${date}T${slot}:00+09:00`;
-  const p = pending[i];
+  const p = ready[i];
 
   console.log(`  ${date} ${slot}  ${p.file}${p.isDraft ? '（下書き解除）' : ''}`);
 
@@ -66,12 +81,10 @@ for (let i = 0; i < pending.length; i++) {
     let out = p.raw;
     out = out.replace(/^publishDate:.*$/m, `publishDate: ${stamp}`);
     if (!/^publishDate:/m.test(out)) out = out.replace(/^---\n/, `---\npublishDate: ${stamp}\n`);
-    // 実測値が未記入の下書きは解除しない（捏造防止の仕組みを壊さない）
-    if (p.isDraft && !/\[要実測\]/.test(out)) out = out.replace(/^draft:\s*true\s*$/m, 'draft: false');
+    if (p.isDraft) out = out.replace(/^draft:\s*true\s*$/m, 'draft: false');
     await writeFile(join(DIR, p.file), out, 'utf-8');
     changed++;
   }
 }
 
 console.log(APPLY ? `\n${changed} 本を更新しました。` : '\n--apply を付けると実際に書き換えます。');
-console.log('※ [要実測] が残る下書きは draft: true のまま維持されます。');

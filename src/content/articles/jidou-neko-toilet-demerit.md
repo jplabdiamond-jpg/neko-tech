@@ -5,7 +5,7 @@ format: comparison
 category: litter-box
 planNo: 17
 keyword: 自動猫トイレ デメリット
-publishDate: 2026-12-01
+publishDate: 2026-11-27T07:00:00+09:00
 verified: 実機を12ヶ月使用
 draft: true
 ---

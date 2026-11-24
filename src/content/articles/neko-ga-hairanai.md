@@ -5,7 +5,7 @@ format: troubleshoot
 category: litter-box
 planNo: 1
 keyword: 自動猫トイレ 猫が入らない
-publishDate: 2026-12-02
+publishDate: 2026-11-25T07:00:00+09:00
 verified: 実機で慣らし実施
 draft: true
 ---

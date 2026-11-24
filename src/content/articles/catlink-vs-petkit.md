@@ -5,7 +5,7 @@ format: comparison
 category: litter-box
 planNo: 16
 keyword: CATLINK PETKIT 比較
-publishDate: 2026-12-08
+publishDate: 2026-11-26T07:00:00+09:00
 verified: 実機2台を6ヶ月使用
 draft: true
 ---
