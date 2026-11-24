@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # 商品画像・価格を毎日更新する（コードが変わらなくても再デプロイされる）
+  schedule:
+    - cron: '0 20 * * *'  # UTC 20:00 = JST 05:00
 
 concurrency:
   group: pages-deploy
@@ -29,7 +32,9 @@ jobs:
       - name: Fetch product data (Rakuten)
         env:
           RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
           RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
+          RAKUTEN_REFERER: https://neko-tech.pages.dev/
         run: node scripts/fetch-rakuten.mjs
 
       - run: npm run build

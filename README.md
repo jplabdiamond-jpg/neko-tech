@@ -100,11 +100,34 @@ node -e "import('./src/lib/editorial.ts')" # もしくは公開済み本数 % 8 
 
 ### 楽天APIの設定
 
-1. [楽天ウェブサービス](https://webservice.rakuten.co.jp/)でアプリIDを発行
-2. GitHub Secret に `RAKUTEN_APP_ID`（と任意で `RAKUTEN_AFFILIATE_ID`）を登録
-3. 取得したい商品は `src/data/product-queries.json` に追記
+**2026年2月に仕様が変わっている。** 旧 `app.rakuten.co.jp/services/api/` は使わない。
+新仕様は `openapi.rakuten.co.jp/ichibams/api/` で、認証が2つに増えている。
 
-Secret未設定でもビルドは通る（取得をスキップする）。
+1. [楽天ウェブサービス](https://webservice.rakuten.co.jp/)でアプリを登録し、
+   **アプリID（UUID形式）** と **アクセスキー（`pk_` で始まる）** の両方を取得
+2. アプリの「許可されたWebサイト」に本番ドメインを登録する
+   （APIがRefererヘッダーを検証するため、ここが一致しないと弾かれる）
+3. GitHub Secret に登録:
+
+   | Secret | 必須 | 内容 |
+   | --- | --- | --- |
+   | `RAKUTEN_APP_ID` | ○ | アプリID（UUID） |
+   | `RAKUTEN_ACCESS_KEY` | ○ | アクセスキー（`pk_...`） |
+   | `RAKUTEN_AFFILIATE_ID` | — | アフィリエイトID |
+
+4. 取得したい商品は `src/data/product-queries.json` に追記
+   （`keyword` で検索、または `itemCode` で特定商品を直接指定）
+
+Secret未設定でもビルドは通る（取得をスキップし、既存の `products.json` を使う）。
+取得に失敗した商品は前回値を残すので、画像が突然消えることはない。
+
+ドメイン取得後は `RAKUTEN_REFERER`（deploy.yml に直書き）も新ドメインに変えること。
+
+### 商品データの自動更新
+
+`deploy.yml` に日次のスケジュール実行を入れてある（JST 5:00）。
+コードを変更しなくても、毎日商品画像と価格が更新されて再デプロイされる。
+不要なら `schedule:` ブロックを削除する。
 
 ## 方針（重要）
 
