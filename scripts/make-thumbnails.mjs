@@ -87,12 +87,23 @@ const width = (s) => [...s].reduce((n, c) => n + (/[\x00-\x7F]/.test(c) ? 0.5 : 
  * 長いタイトルをそのまま載せると可読性が落ちるため、
  * 「｜」より前 → 最初の句点・疑問符まで、の順で短くする。
  */
-const MAX_HEAD = 26; // 全角換算の上限
+const MAX_HEAD = 22;  // 全角換算の上限
+const IDEAL_MIN = 8;  // これ以上あれば見出しとして成立する
+const IDEAL_MAX = 20;
 
 function toHeadline(title) {
   let t = title.split('｜')[0].trim();
   // 【実践手順】のような装飾は見出しには不要
   t = t.replace(/[【［\[].*?[】］\]]\s*$/g, '').replace(/[〜~].*?[〜~]\s*$/g, '').trim();
+
+  // 疑問符・句点で切れるなら、全体が上限内でも切る。
+  // サムネイルは短い見出しのほうが読まれるため、長さより簡潔さを優先する。
+  const q = [...t.matchAll(/[？。！?]/g)].find((x) => {
+    const w = width(t.slice(0, x.index + 1));
+    return w >= IDEAL_MIN && w <= IDEAL_MAX;
+  });
+  if (q) return t.slice(0, q.index + 1);
+
   if (width(t) <= MAX_HEAD) return t;
 
   // 疑問符・句点で切れるならそこで止める（見出しとして成立する位置）
@@ -135,14 +146,26 @@ function chunks(text) {
 
   // ひらがな（助詞・送り仮名）は直前の塊にくっつける。
   // 「トイレ」＋「の」→「トイレの」となり、助詞の直後で改行できる。
+  //
+  // ただし長いひらがな列をまるごと繋げると
+  // 「医療費」＋「はいくらかかる」＝ 11文字の巨大な塊になり、
+  // 改行位置が縛られて行のバランスが崩れる。
+  // 先頭の助詞だけを繋ぎ、残りは独立した塊として扱う。
+  const PARTICLE = /^[のをにはがとでへやもかねよ]/;
   const out = [];
   for (const t of raw) {
     const isKana = /^[ぁ-ん]+$/.test(t);
     const isPunct = /^[、。！？・…]$/.test(t);
-    if ((isKana || isPunct) && out.length) out[out.length - 1] += t;
-    else out.push(t);
+
+    if (isPunct && out.length) { out[out.length - 1] += t; continue; }
+
+    if (isKana && out.length) {
+      if (width(t) <= 2) { out[out.length - 1] += t; continue; }
+      if (PARTICLE.test(t)) { out[out.length - 1] += t[0]; out.push(t.slice(1)); continue; }
+    }
+    out.push(t);
   }
-  return out;
+  return out.filter(Boolean);
 }
 
 /** 見出しを最大3行に折り返す。塊の途中では切らない */
@@ -189,15 +212,18 @@ function wrap(title) {
 function buildSVG({ lines, label }) {
   const longest = Math.max(...lines.map(width));
   // 左55%に収めるため、最長行から級数を決める
-  const size = Math.min(132, Math.floor((W * 0.52) / longest));
+  const size = Math.min(132, Math.floor((W * 0.50) / longest));
   const lh = Math.round(size * 1.28);
   const blockH = lh * lines.length;
   const top = Math.round((H - blockH) / 2) + size * 0.78;
   const x = 72;
 
+  // 左のアクセントバーに文字が重ならないよう内側に寄せる
+  const textX = x + 30;
+
   const texts = lines
     .map((t, i) =>
-      `<text x="${x}" y="${top + i * lh}" font-family="Noto Sans JP" font-weight="900" ` +
+      `<text x="${textX}" y="${top + i * lh}" font-family="Noto Sans JP" font-weight="900" ` +
       `font-size="${size}" fill="${COLORS.paper}" letter-spacing="-2">${esc(t)}</text>`
     )
     .join('');
@@ -212,7 +238,7 @@ function buildSVG({ lines, label }) {
   </defs>
   <rect width="${W}" height="${H}" fill="url(#scrim)"/>
   <rect x="${x}" y="${top - size - 54}" width="8" height="${blockH + 20}" fill="${COLORS.amber}"/>
-  <text x="${x + 26}" y="${top - size - 22}" font-family="Noto Sans JP" font-weight="700"
+  <text x="${textX}" y="${top - size - 22}" font-family="Noto Sans JP" font-weight="700"
         font-size="30" fill="${COLORS.amber}" letter-spacing="4">${esc(label)}</text>
   ${texts}
   <text x="${x}" y="${H - 48}" font-family="Noto Sans JP" font-weight="700"
