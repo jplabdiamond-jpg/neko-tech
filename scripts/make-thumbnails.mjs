@@ -212,14 +212,14 @@ function wrap(title) {
 function buildSVG({ lines, label }) {
   const longest = Math.max(...lines.map(width));
   // 左55%に収めるため、最長行から級数を決める
-  const size = Math.min(132, Math.floor((W * 0.50) / longest));
+  const size = Math.min(132, Math.floor((W * 0.48) / longest));
   const lh = Math.round(size * 1.28);
   const blockH = lh * lines.length;
   const top = Math.round((H - blockH) / 2) + size * 0.78;
   const x = 72;
 
-  // 左のアクセントバーに文字が重ならないよう内側に寄せる
-  const textX = x + 30;
+  // 左のアクセントバーと文字の間に十分な余白を取る
+  const textX = x + 58;
 
   const texts = lines
     .map((t, i) =>
